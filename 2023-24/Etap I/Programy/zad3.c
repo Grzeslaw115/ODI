@@ -12,6 +12,24 @@ bool contains_vowel(char *word, int start, int end) {
     return false;
 }
 
+// Counts the number of splits in the word
+int count_splits(char* str, int start, int length) {
+    if (start >= length) {
+        return 0;
+    }
+
+    int total_splits = 0;
+    for (int i = start + 1; i < length; i++) {
+        if (contains_vowel(str, start, i)) { // Checks if there is vowel in first part
+            if (contains_vowel(str, i, length)) { // Checks if there is vowel in second part, if so, it is a valid split
+                total_splits++; 
+            }
+            total_splits += count_splits(str, i, length); // Recursively check for more splits
+        }
+    }
+    return total_splits;
+}
+
 int main() {
 
     // Read input
@@ -20,23 +38,8 @@ int main() {
         printf("Incorrect input\n");
         return 1;
     }
-    
-    // Initialize dp array
     int n = strlen(word);
-    int dp[n + 1];
-    memset(dp, 0, sizeof(dp));
-    dp[0] = 1;
 
-    // Calculate dp values
-    for (int i = 1; i <= n; i++) {
-        for (int j = 0; j < i; j++) {
-            if (contains_vowel(word, j, i)) {
-                dp[i] += dp[j];
-            }
-        }
-    }
-
-    // Print result, -1 because string must be cut at least once
-    printf("%d\n", dp[n] - 1);
+    printf("%d\n", count_splits(word, 0, n));
     return 0;
 }
