@@ -9,7 +9,7 @@
 typedef struct {
     int cost;
     int island;
-    int mode;
+    int mode; // 0 - bridge, 1 - ship, 2 - plane
 } State;
 
 typedef struct {
@@ -72,7 +72,7 @@ int find_min_cost(int matrix[MAX_ISLANDS][MAX_ISLANDS], int n, int start, int en
     queue.states = malloc(n * n * 3 * sizeof(State)); // Considering 3 modes per state per island
     queue.size = 0;
 
-    int cost[n][3];
+    int cost[n][3]; // 0 - bridge, 1 - ship, 2 - plane
     bool visited[n][3];
     
     for (int i = 0; i < n; i++) {
@@ -84,10 +84,12 @@ int find_min_cost(int matrix[MAX_ISLANDS][MAX_ISLANDS], int n, int start, int en
 
     for (int mode = 0; mode < 3; mode++) {
         cost[start][mode] = 0;
-        push(&queue, (State){0, start, mode});
     }
 
+    push(&queue, (State){0, start, -1}); // Initializing, -1 mode means that we are starting from the island
+
     while (queue.size > 0) {
+        
         State current = pop(&queue);
 
         if (current.island == end) {
@@ -105,7 +107,7 @@ int find_min_cost(int matrix[MAX_ISLANDS][MAX_ISLANDS], int n, int start, int en
             if (matrix[current.island][i] > 0) {
                 int new_cost = current.cost + matrix[current.island][i];
                 for (int new_mode = 0; new_mode < 3; new_mode++) {
-                    if (new_mode != current.mode) {
+                    if (new_mode != current.mode) { // We can't go by same mode
                         if (new_cost < cost[i][new_mode]) {
                             cost[i][new_mode] = new_cost;
                             push(&queue, (State){new_cost, i, new_mode});
@@ -114,13 +116,14 @@ int find_min_cost(int matrix[MAX_ISLANDS][MAX_ISLANDS], int n, int start, int en
                 }
             }
         }
-    }
 
+    }
     free(queue.states);
     return -1;
 }
 
 int main() {
+    // Reading input
     int N, A, B;
     if (scanf("%d %d %d", &N, &A, &B) != 3) return 1;
 
@@ -131,6 +134,7 @@ int main() {
         }
     }
 
+    // Finding the minimum cost and printing it
     int result = find_min_cost(matrix, N, A, B);
     printf("%d\n", result);
 
