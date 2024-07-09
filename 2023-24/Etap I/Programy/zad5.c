@@ -69,12 +69,12 @@ State pop(PriorityQueue *queue) {
 
 int find_min_cost(int matrix[MAX_ISLANDS][MAX_ISLANDS], int n, int start, int end) {
     PriorityQueue queue;
-    queue.states = malloc(n * n * 3 * sizeof(State)); // Considering 3 modes per state per island
+    queue.states = malloc(n * 3 * sizeof(State));
     queue.size = 0;
 
-    int cost[n][3]; // 0 - bridge, 1 - ship, 2 - plane
+    int cost[n][3];
     bool visited[n][3];
-    
+
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < 3; j++) {
             cost[i][j] = INF;
@@ -86,10 +86,10 @@ int find_min_cost(int matrix[MAX_ISLANDS][MAX_ISLANDS], int n, int start, int en
         cost[start][mode] = 0;
     }
 
-    push(&queue, (State){0, start, -1}); // Initializing, -1 mode means that we are starting from the island
+    push(&queue, (State){0, start, -1}); // Initializing, -1 mode means that we are allowed to go by any mode 
 
     while (queue.size > 0) {
-        
+
         State current = pop(&queue);
 
         if (current.island == end) {
@@ -97,26 +97,25 @@ int find_min_cost(int matrix[MAX_ISLANDS][MAX_ISLANDS], int n, int start, int en
             return current.cost;
         }
 
-        if (visited[current.island][current.mode]) {
+        // If we came here by some mode, mark it as visited
+        if (current.mode != -1 && visited[current.island][current.mode]) {
             continue;
         }
 
-        visited[current.island][current.mode] = true;
+        if (current.mode != -1) {
+            visited[current.island][current.mode] = true;
+        }
 
         for (int i = 0; i < n; i++) {
             if (matrix[current.island][i] > 0) {
                 int new_cost = current.cost + matrix[current.island][i];
-                for (int new_mode = 0; new_mode < 3; new_mode++) {
-                    if (new_mode != current.mode) { // We can't go by same mode
-                        if (new_cost < cost[i][new_mode]) {
-                            cost[i][new_mode] = new_cost;
-                            push(&queue, (State){new_cost, i, new_mode});
-                        }
-                    }
+                int new_mode = (matrix[current.island][i] == 1) ? 0 : (matrix[current.island][i] == 5) ? 1 : 2;
+                if (new_cost < cost[i][new_mode] && current.mode != new_mode) { // We can't go by the same mode
+                    cost[i][new_mode] = new_cost;
+                    push(&queue, (State){new_cost, i, new_mode});
                 }
             }
         }
-
     }
     free(queue.states);
     return -1;
